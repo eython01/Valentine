@@ -25,26 +25,29 @@
             justify-content: center;
             z-index: 10;
             width: 100%;
-            padding: 20px;
+            padding: 15px;
             box-sizing: border-box;
+            max-height: 100vh; /* Keeps container strictly inside the screen */
         }
 
         h1 {
             color: #be185d;
             font-size: 32px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             max-width: 100%;
             word-wrap: break-word; 
             font-weight: bold;
         }
 
         img {
-            width: 250px;
-            height: 250px;
+            width: auto;
+            height: 250px; /* Starting height */
+            max-height: 40vh; /* Will never take up more than 40% of the screen */
             object-fit: contain;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             border-radius: 15px;
-            pointer-events: none; /* Prevents long-press save options on mobile */
+            pointer-events: none; 
+            transition: height 0.3s ease; /* Smooth shrinking animation */
         }
 
         .buttons {
@@ -72,7 +75,10 @@
             padding: 12px 24px;
             transition: all 0.3s ease;
             z-index: 2;
+            /* Extra safeguards for mobile screens */
             max-width: 90vw;
+            white-space: normal;
+            word-wrap: break-word;
             box-sizing: border-box;
         }
 
@@ -111,11 +117,9 @@
 </head>
 <body>
 
-    <!-- Question Page -->
     <div class="container" id="question-container">
         <h1>Will you be my Valentine? 💕</h1>
         
-        <!-- Default Image -->
         <img id="main-gif" src="1.gif" alt="Cute character">
         
         <div class="buttons">
@@ -124,12 +128,10 @@
         </div>
     </div>
 
-    <!-- Success Page -->
     <div class="container hidden" id="success-container">
         <h1>Knew you would say yes! 🥳</h1>
         
-        <!-- Success/Kissing Image -->
-        <img src="5.gif" alt="Happy characters">
+        <img src="5.gif" alt="Happy characters" style="height: 250px;">
 
         <p>You just made me the happiest person!</p>
     </div>
@@ -146,7 +148,6 @@
             "Last chance! 😾"
         ];
 
-        // Using your downloaded local files
         const sadGifs = [
             "1.gif", 
             "2.gif", 
@@ -177,19 +178,32 @@
                 return;
             }
 
+            // 1. Update text
             noBtn.innerText = noMessages[clickCount];
 
+            // 2. Grow the Yes button (Safely!)
             const currentSize = parseFloat(window.getComputedStyle(yesBtn).fontSize);
-            let newSize = currentSize * 1.35; 
+            let newSize = currentSize * 1.3; 
             
-            const maxFontSize = window.innerWidth * 0.20; 
-            if (newSize > maxFontSize) {
-                newSize = maxFontSize;
+            // STRICT SIZE LIMITS:
+            // Prevents the font from exceeding 12% of screen width OR 50px total height
+            const maxSafeSize = Math.min(window.innerWidth * 0.12, 50); 
+            
+            if (newSize > maxSafeSize) {
+                newSize = maxSafeSize;
             }
 
             yesBtn.style.fontSize = newSize + "px";
-            yesBtn.style.padding = `${newSize / 2}px ${newSize}px`;
+            // Padding scales down slightly as it gets bigger to save screen space
+            yesBtn.style.padding = `${newSize * 0.4}px ${newSize * 0.8}px`;
 
+            // 3. Shrink the GIF slightly to make room for the giant button
+            const currentImgHeight = parseFloat(window.getComputedStyle(mainGif).height);
+            if (currentImgHeight > 100) { // Stops shrinking at 100px so it doesn't disappear
+                mainGif.style.height = (currentImgHeight * 0.85) + "px";
+            }
+
+            // 4. Update GIF image
             const gifIndex = Math.min(Math.floor(clickCount / 2), sadGifs.length - 1);
             mainGif.src = sadGifs[gifIndex];
         }
